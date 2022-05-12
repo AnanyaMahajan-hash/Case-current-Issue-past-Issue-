@@ -1,0 +1,46 @@
+@isTest
+public class UpdateCaseCountHandlerTest {
+    static testMethod void caseIsuesMethodTest() {
+        Account acc = new Account();
+        acc.Name  = 'David';
+        acc.Past_Issue__c = 'test';
+        acc.Current_Issue__c  = '';
+        acc.Case_Count__c= 5;
+        try{    
+            insert acc;
+        }catch(Exception e){
+            System.debug(e.getMessage());
+        }
+        Account acc1 = new Account();
+        acc1.Name  = 'David';
+        acc1.Past_Issue__c = '';
+        acc1.Current_Issue__c  = '';
+        acc1.Case_Count__c= null;
+        try{    
+            insert acc1;
+        }catch(Exception e){
+            System.debug(e.getMessage());
+        }
+        case  c = new case ();
+        c.AccountId  = acc.Id ;
+        c.Product__c = 'test';
+        c.Status = 'new';
+        insert c;
+        case  c2 = new case ();
+        c2.AccountId  = acc.Id ;
+        c2.Product__c = 'test';
+        c2.Status = 'closed';
+        insert c2;
+        case  c3 = new case ();
+        c3.AccountId  = acc1.Id ;
+        c3.Product__c = 'test2';
+        c3.Status = 'new';
+        insert c3;
+        List<Case> caselist=new List<Case>();
+        Case c1= new Case();
+        c1.AccountId= acc.Id ;
+        c1.Product__c= 'GC1060';
+        caselist.add(c1);
+        insert caselist;
+    }
+}
