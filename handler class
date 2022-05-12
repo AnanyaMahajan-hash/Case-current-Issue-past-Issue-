@@ -1,0 +1,66 @@
+public class UpdateCaseCountHandler {
+    public static void caseIsuesMethod(List <case> lstCase) {
+        List < Account > updateAcc = new List <Account> ();
+        List < Messaging.singleEmailMessage > mails = new List < Messaging.singleEmailMessage > ();
+        Set < Id > accId = new Set < Id > ();
+        For(Case cse: lstCase) {
+            accId.add(cse.accountId);
+        }
+        // Logic to update curernt Issues
+        List < Account > accouuntCases = [Select Id, Name, Owner.email, Current_Issue__c, Past_Issue__c, Case_Count__c from account where ID in: accId];
+        if (accouuntCases.size() > 0) {
+            for (account acc: accouuntCases) {
+                if (lstCase.size() > 0) {
+                    for (case casesForAcc: lstCase) {
+                        if (casesForAcc.Status != 'Closed') {
+                            if (acc.Current_Issue__c == null || acc.Current_Issue__c == ' ') {
+                                acc.Current_Issue__c = casesForAcc.Product__c;
+                                system.debug('Current Issue on CC: ' + acc.Current_Issue__c);
+                                if (acc.Case_Count__c == null) {
+                                    acc.Case_Count__c = 1;
+                                }
+                            } else {
+                                acc.Current_Issue__c = acc.Current_Issue__c + ',' + casesForAcc.Product__c;
+                                system.debug('Current Issue on Not Null: '+ ' ,' + acc.Current_Issue__c);
+                                if (acc.Case_Count__c != null) {
+                                    acc.Case_Count__c = acc.Case_Count__c + 1;
+                                }
+                            }
+                        }
+                        // Logic to update Past Issues
+                        if (casesForAcc.Status == 'Closed') {
+                            if (acc.Current_Issue__c.contains(casesForAcc.Product__c+',')) {
+                                acc.Current_Issue__c = acc.Current_Issue__c.replace(casesForAcc.Product__c+',',' ');
+                                if (acc.Past_Issue__c == null || acc.Past_Issue__c == ' ') {
+                                    acc.Past_Issue__c = casesForAcc.Product__c;
+                                } else if (acc.Past_Issue__c != null || acc.Past_Issue__c != ' ') {
+                                    acc.Past_Issue__c = acc.Past_Issue__c + ',' + casesForAcc.Product__c;
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+                updateAcc.add(acc);
+                if (acc.Case_Count__c == 5) {
+                    Messaging.singleemailmessage mail = new Messaging.singleemailmessage();
+                    // step 3: set list of people who should get mail
+                    List < string > sendTo = new List < string > ();
+                    sendTo.add(acc.Owner.email);
+                    system.debug('==============' + acc.Owner.email);
+                    mail.setToAddresses(sendTo);
+                    // step 4: set who the email is sent from
+                    //mail.setReplyTo('youreamil@gmail.com ');
+                    mail.setSenderDisplayName('monali');
+                    // step 5: set email contents
+                    mail.setSubject('Duplicate Account is Created');
+                    mail.setHtmlBody('This Account' + ' ' + acc.name + ' ' + 'already exists');
+                    // Add your email to the master list
+                    mails.add(mail);
+                }
+            }
+        }
+        update updateAcc;
+        Messaging.sendEmail(mails);
+    }
+}
