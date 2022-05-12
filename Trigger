@@ -1,0 +1,5 @@
+trigger UpdateCaseCount on Case(After Insert, After Update) {
+    if(trigger.IsAfter && trigger.isInsert || trigger.IsAfter && trigger.isUpdate){
+        UpdateCaseCountHandler.caseIsuesMethod(trigger.new);
+    }
+}
